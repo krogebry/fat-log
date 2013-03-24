@@ -1,0 +1,25 @@
+topology "ha"
+
+<% @backends.each do |be| %>
+server "<%= be["fqdn"] %>",
+  :ipaddress => "<%= @backend_ip %>",
+  :role => "backend",
+  :bootstrap => true,
+  :cluster_ipaddress => "<%= @backend_ip %>"
+<% end %>
+
+<% @frontends.each do |fe| %>
+server "<%= fe["fqdn"] %>",
+  :role => "frontend",
+  :ipaddress => "<%= fe["ipaddress"] %>"
+<% end %>
+
+drbd['primary'] = {
+  "fqdn" => "<%= @backends[0]['fqdn'] %>",
+  "ip" => "<%= @backend_ip %>"
+}
+
+backend_vip "<%= @backends[0]['fqdn'] %>",
+  :ipaddress => "<%= @backend_ip %>",
+  :device => "eth0",
+  :heartbeat_device => "eth0"
